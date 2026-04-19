@@ -1,0 +1,13 @@
+<odoo>
+    <record id="view_hr_leave_type_form_inherit_include_weekend" model="ir.ui.view">
+        <field name="name">hr.leave.type.form.include.weekend</field>
+        <field name="model">hr.leave.type</field>
+        <field name="inherit_id" ref="hr_holidays.edit_holiday_status_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert inside the Configuration group -->
+            <xpath expr="//group[@name='configuration']" position="inside">
+                <field name="include_weekend" string="Include Weekends"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

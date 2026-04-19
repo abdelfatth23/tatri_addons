@@ -1,0 +1,304 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+
+        <record id="view_hr_employee_filter_inherit_register" model="ir.ui.view">
+            <field name="name">hr.employee.registeration.view.filter.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="filter_domain">['|', '|', ('registration_number', 'ilike', self), ('work_email', 'ilike', self), ('name', 'ilike', self), ]</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_hr_employee_form_custody_inherit_register" model="ir.ui.view">
+            <field name="name">hr.employee.registeration.view.form.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='work_location_id']" position="after">
+                    <field name="has_custody" />
+                    <field name="custody_note" invisible="not has_custody"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_hr_contract_history_form_inherit_register" model="ir.ui.view">
+            <field name="name">hr.contract.history.registeration.view.form.inherit</field>
+            <field name="model">hr.contract.history</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_history_view_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="filter_domain">['|', ('employee_id.registration_number', 'ilike', self), ('name', 'ilike', self)]</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_hr_payslip_form_inherit_add_fields" model="ir.ui.view">
+            <field name="name">hr.payslip.view.form.inherit</field>
+            <field name="model">hr.payslip</field>
+            <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='account_info']//field[@name='company_id']" position="after">
+                    <field name="bank_amount" readonly="0" />
+                    <field name="cash_amount" readonly="0" />
+                </xpath>
+                <xpath expr="//sheet/group" position="after">
+                    <group>
+                        <group>
+                            <field name="labor_day_allowance"/>
+                            <field name="cost_of_living_allowance"/>
+                            <field name="production_incentive_allowance"/>
+                            <field name="nature_of_work_allowance"/>
+                            <field name="transportation_allowance_in_kind"/>
+                            <!-- <field name="food_allowance"/> -->
+                            <field name="exceptional_reward_allowance"/>
+                            <field name="previous_months_allowance"/>
+                            <!-- <field name="reward_regularity_allowance"/> -->
+                            <field name="no_days_holidays"/>
+                            <field name="no_hours_holidays"/>
+                            <field name="holidays_allowance"/>
+                            <field name="morning_hours"/>
+                            <field name="morning_hours_allowance"/>
+                            <field name="night_hours"/>
+                            <field name="night_hours_allowance"/>
+                        </group>
+                        <group>
+                            <!-- <field name="days_deduction"/> -->
+                            <field name="monthly_loans_deduction"/>
+                            <field name="loan_installment_deduction"/>
+                            <!-- <field name="exit_permits_deduction"/> -->
+                            <field name="delay_permits_hours"/>
+                            <field name="delay_permits_deduction"/>
+                            <field name="custody_deduction"/>
+                            <!-- <field name="prod_incentive_deduction"/> -->
+                            <!-- <field name="insurance_deduction"/>
+                            <field name="hfm_deduction"/>
+                            <field name="employment_tax_deduction"/> -->
+                        </group>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="ro_structure_attendance_sheet" model="hr.payroll.structure">
+            <field name="name">Attendance Sheet Salary Structure</field>
+            <field name="type_id" ref="hr_contract.structure_type_employee" />
+            <field name="country_id" eval="False" />
+        </record>
+
+        <record id="NONTAX" model="hr.salary.rule.category">
+            <field name="name">NonTax</field>
+            <field name="code">NONTAX</field>
+        </record>
+
+        <!-- Allowances -->
+        <record id="ro_hr_salary_rule_att_bonuse" model="hr.salary.rule">
+            <field name="code">BON</field>
+            <field name="name">عمل اضافي</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_002" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = payslip.dict._ro_get_contract_bonus_allowance()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Bonuse</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_incentives" model="hr.salary.rule">
+            <field name="code">INCEN</field>
+            <field name="name">حوافز</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_002" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = payslip.dict._ro_get_contract_incentives()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Incentive</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_assignment_allowance" model="hr.salary.rule">
+            <field name="code">ALLOWANCE</field>
+            <field name="name">بدل انتداب</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_002" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = payslip.dict._ro_get_contract_assignment_allowance()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Allowances</field>
+        </record>
+
+        <!-- Deduction -->
+        <record id="ro_hr_salary_rule_loan_deduction" model="hr.salary.rule">
+            <field name="code">DEDLN</field>
+            <field name="name">سلف و قروض</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_002" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_deduction_loan_deduction()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Deduction</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_dalys" model="hr.salary.rule">
+            <field name="code">DEALY</field>
+            <field name="name">غياب وتاخيرات</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_002" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_contract_delays()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Delays</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_early_dismissal" model="hr.salary.rule">
+            <field name="code">Dismissal</field>
+            <field name="name">تأخر و انصراف مبكر</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_002" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_contract_early_dismissal()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Early Dismissal</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_penalties" model="hr.salary.rule">
+            <field name="code">Penalties</field>
+            <field name="name">جزاءات</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_002" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_contract_penalties()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Penalties</field>
+        </record>
+
+        <!-- _________________________________Worker______________________________________ -->
+
+        <!-- Allowances -->
+        <record id="ro_hr_salary_rule_att_bonuse" model="hr.salary.rule">
+            <field name="code">BON</field>
+            <field name="name">عمل اضافي</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_worker_001" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = payslip.dict._ro_get_contract_bonus_allowance()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Bonuse</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_incentives" model="hr.salary.rule">
+            <field name="code">INCEN</field>
+            <field name="name">حوافز</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_worker_001" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = payslip.dict._ro_get_contract_incentives()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Incentive</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_assignment_allowance" model="hr.salary.rule">
+            <field name="code">ALLOWANCE</field>
+            <field name="name">بدل انتداب</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_worker_001" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = payslip.dict._ro_get_contract_assignment_allowance()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Allowances</field>
+        </record>
+
+        <!-- Deduction -->
+        <record id="ro_hr_salary_rule_loan_deduction" model="hr.salary.rule">
+            <field name="code">DEDLN</field>
+            <field name="name">سلف و قروض</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_worker_001" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_deduction_loan_deduction()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Deduction</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_dalys" model="hr.salary.rule">
+            <field name="code">DEALY</field>
+            <field name="name">غياب وتاخيرات</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_worker_001" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_contract_delays()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Delays</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_early_dismissal" model="hr.salary.rule">
+            <field name="code">Dismissal</field>
+            <field name="name">تأخر و انصراف مبكر</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_worker_001" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_contract_early_dismissal()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Early Dismissal</field>
+        </record>
+
+        <record id="ro_hr_salary_rule_penalties" model="hr.salary.rule">
+            <field name="code">Penalties</field>
+            <field name="name">جزاءات</field>
+            <field name="category_id" ref="hr_payroll.ALW" />
+            <field name="struct_id" ref="hr_payroll.structure_worker_001" />
+            <field name="condition_select">python</field>
+            <field name="condition_python">result = True </field>
+            <field name="amount_select">code</field>
+            <field name="amount_python_compute">result = -payslip.dict._ro_get_contract_penalties()</field>
+            <field name="sequence" eval="31" />
+            <field name="note">Penalties</field>
+        </record>
+
+
+
+        <record id="view_hr_employee_form_inherit_add_bank_amount" model="ir.ui.view">
+            <field name="name">hr.employee.view.form.bank.amount</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='hr_settings']/group/group[@name='payroll_group']" position="before">
+                       <group string="Bank Info">
+                            <field name="bank_amount"/>
+                        </group>
+                </xpath>
+            </field>
+        </record>
+
+
+
+    </data>
+    
+</odoo>

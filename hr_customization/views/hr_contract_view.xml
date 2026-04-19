@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_contract_form_allowances_inherit" model="ir.ui.view">
+            <field name="name">hr.contract.view.form.allowances.inherit</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="rm_eg_hr_payroll.hr_contract_form_egypt_inherit"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//page[@name='salary_items']//field[@name='variable_salary']" position="after">
+                    <field name="daily_wage" />                    
+                    <field name="hourly_wage" />
+                </xpath>
+
+                <xpath expr="//page[@name='salary_items']//field[@name='allowances']" position="after">
+                    <field name="labor_day_allowance" />                    
+                    <field name="cost_of_living_allowance" />
+                    <field name="production_incentive_allowance" />
+                    <field name="nature_of_work_allowance"/>
+                    <field name="regular_incentive_allowance"/>
+                    <field name="transportation_allowance_in_kind" />
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>
