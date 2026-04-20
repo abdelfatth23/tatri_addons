@@ -99,7 +99,7 @@ class HrAttendanceInh(models.Model):
 
 
         return public_holiday
-    
+
     def get_schedule_swaps(self, date, emp):
         swap_schedule = self.env['hr.employee.schedule']
         swap_schedules = self.env['hr.employee.schedule'].sudo().search(
@@ -109,7 +109,7 @@ class HrAttendanceInh(models.Model):
         for ph in swap_schedules:
             swap_schedule |= ph
         return swap_schedule
-    
+
 
     def calculate_day_hours(self, start_datetime, end_datetime, morning_start_hour=6, night_end_hour=18):
         """Calculates day hours BETWEEN two datetimes, from morning_start_hour to night_end_hour."""
@@ -164,13 +164,16 @@ class HrAttendanceInh(models.Model):
 
                 if contracts:
                     this.target_hours = contracts.resource_calendar_id.hours_per_day
+                    print(this.target_hours)
                     tz = pytz.timezone(self.env.user.tz or 'UTC')
+                    print(tz)
 
                     check_in = this.check_in.astimezone(tz).replace(tzinfo=None)
                     check_out = this.check_out.astimezone(tz).replace(tzinfo=None)
 
                     policy_id = contracts.att_policy_id
                     checkin_hour = self.conv_time_float(check_in.strftime("%H:%M"))
+                    print(checkin_hour)
                     checkout_hour = self.conv_time_float(check_out.strftime("%H:%M")) if check_out else False
 
                     in_check_factor = 24 - checkin_hour
@@ -222,9 +225,12 @@ class HrAttendanceInh(models.Model):
                             day_in_calender = contracts.resource_calendar_id.attendance_ids.filtered(
                                 lambda x: x.dayofweek == day_ref and not x.date_from
                             )
+                            print(day_in_calender,"calender")
+
 
                         calender_from = calender_to = 0
                         if day_in_calender or schedule_swaps:
+
                             if schedule_swaps:
                                 calender_date_from = schedule_swaps[0].date_from
                                 calender_date_to = schedule_swaps[0].date_to
@@ -234,23 +240,30 @@ class HrAttendanceInh(models.Model):
                                 calender_date_from = day_in_calender[0].date_from
                                 calender_date_to = day_in_calender[0].date_to
                                 calender_from = day_in_calender[0].hour_from
+                                print(calender_from,"ddd")
                                 calender_to = day_in_calender[0].hour_to
+                                print(calender_to,"ddd")
 
                             # ✅ Validate before parsing
-                            if calender_date_from and calender_date_to:
-                                in_calender_hour = time.strftime("%H:%M:%S", time.gmtime(calender_from * 3600))
-                                out_calender_hour = time.strftime("%H:%M:%S", time.gmtime(calender_to * 3600))
-                                try:
-                                    in_calender = datetime.strptime(f"{calender_date_from} {in_calender_hour}", "%Y-%m-%d %H:%M:%S")
-                                    out_calender = datetime.strptime(f"{calender_date_to} {out_calender_hour}", "%Y-%m-%d %H:%M:%S")
-                                except Exception as e:
-                                    logging.warning(f"Invalid calendar datetime for attendance {this.id}: {e}")
-                                    continue
-                            else:
-                                logging.warning(f"Missing calendar date for attendance {this.id}")
-                                continue
+                            cal_date_from = calender_date_from or check_in_range
+                            cal_date_to = calender_date_to or check_in_range
+
+                            in_calender_hour = time.strftime("%H:%M:%S", time.gmtime(calender_from * 3600))
+                            out_calender_hour = time.strftime("%H:%M:%S", time.gmtime(calender_to * 3600))
+
+                            in_calender = datetime.strptime(
+                                f"{cal_date_from} {in_calender_hour}",
+                                "%Y-%m-%d %H:%M:%S"
+                            )
+
+                            out_calender = datetime.strptime(
+                                f"{cal_date_to} {out_calender_hour}",
+                                "%Y-%m-%d %H:%M:%S"
+                            )
 
                             # 🕒 Late check
+                            print(in_calender,"calender_in")
+                            print(out_calender,"calender_out")
                             if check_in > in_calender:
                                 in_diff = (check_in - in_calender).seconds / 3600
                                 if policy_id:
@@ -286,10 +299,12 @@ class HrAttendanceInh(models.Model):
 
                             # 🕔 Early leave
                             if check_out < out_calender and policy_id:
+                                print(policy_id,"peppe")
                                 out_diff = (out_calender - check_out).seconds / 3600
                                 early_leave_policy = policy_id.get_diff(out_diff)
                                 this.early_leave_hours = early_leave_policy
-                                this.early_leave_count = 1
+                                if this.early_leave_hours:
+                                    this.early_leave_count = 1
                         else:
                             this.is_weekend = True
 

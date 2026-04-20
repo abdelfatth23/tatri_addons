@@ -464,7 +464,10 @@ class Payslip(models.Model):
             total_leaves = sum([no_days[0] for no_days in leaves])
             current_attendance_without_holiday = current_attendance.filtered(lambda x:not x.is_weekend)
             # and not x.is_holiday
-            abs_count = len(worked_days) - len(current_attendance_without_holiday) - total_leaves
+
+            abs_count = len(worked_days) - len(current_attendance_without_holiday) - total_leaves -public_holiday_count
+            if abs_count < 0:
+                abs_count = 0
             print(abs_count)
             print(len(worked_days))
             print(total_leaves)
